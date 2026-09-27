@@ -117,7 +117,7 @@ endpoints:
 #  */
 # ----------------------------------------------------------------------------------------------
 mongodb:
-  uri: ${MONGODB_URI:`mongodb://localhost:27017/thinklab_it_hardware_maintenance_db`}
+  uri: ${MONGODB_URI:`mongodb://localhost:27017/thinklab_hardware_maintenance_db`}
   uuid-representation: STANDARD
   cluster:
     server-selection-timeout: 5000ms
@@ -169,3 +169,13 @@ thinklab:
     token-url: ${THINKLAB_TOKEN_URL:`http://localhost:8082/party-authentication/v1/token/service`}
     client-id: thinklab-it-hardware-maintenance-service
     client-secret: ${THINKLAB_CLIENT_SECRET:}
+
+  # ----------------------------------------------------------------------------------------------
+  # Event backbone (kit ADR-003). This service is a producer only: control/start and control/pass
+  # append to the outbox (best-effort, ADR-034 - this adapter is the raw Mongo driver, not Micronaut
+  # Data, so it does not join a transaction the way party-authentication's UserCreationWriter does).
+  # Off by default; set THINKLAB_EVENTS_ENABLED=true to publish to NATS JetStream locally.
+  # ----------------------------------------------------------------------------------------------
+  events:
+    enabled: ${THINKLAB_EVENTS_ENABLED:false}
+    nats-url: ${THINKLAB_EVENTS_NATS_URL:`nats://localhost:4222`}

@@ -1,7 +1,6 @@
 package com.thinklab.infrastructure.adapter.in.web.handler;
 
 import com.thinklab.domain.exception.WorkOrderNotFoundException;
-import com.thinklab.domain.exception.DuplicateWorkOrderException;
 import com.thinklab.domain.exception.InvalidWorkOrderStatusException;
 import io.micronaut.http.HttpHeaders;
 import io.micronaut.http.HttpRequest;
@@ -66,13 +65,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("DuplicateWorkOrderException maps to 409 with ERR-WO-00409")
-    void conflict() {
-        assertProblem(exceptionHandler.handle(request, new DuplicateWorkOrderException("dup")), HttpStatus.CONFLICT, "ERR-WO-00409");
-    }
-
-    @Test
-    @DisplayName("InvalidWorkOrderStatusException maps to 409 Conflict with ERR-WO-00409 (AST-03)")
+    @DisplayName("InvalidWorkOrderStatusException maps to 409 Conflict with ERR-WO-00409")
     void stateConflictIs409() {
         Map<String, Object> body = assertProblem(exceptionHandler.handle(request, new InvalidWorkOrderStatusException("Illegal transition")),
                 HttpStatus.CONFLICT, "ERR-WO-00409");
