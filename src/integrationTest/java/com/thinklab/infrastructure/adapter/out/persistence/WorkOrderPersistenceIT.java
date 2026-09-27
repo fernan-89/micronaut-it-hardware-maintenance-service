@@ -130,7 +130,10 @@ class WorkOrderPersistenceIT implements TestPropertyProvider {
         assertEquals("RC-1", found.getResolutionCode());
         assertEquals(1, found.getParts().size());
         assertEquals(1, found.getComments().size());
-        assertEquals(initial + 9, found.getAuditTrail().size());
+        // Ten updates, ten ledger entries, in the order they were made.
+        assertEquals(List.of("UPDATED", "TRIAGED", "SCHEDULED", "REPAIR_STARTED", "ESCALATED_TO_VENDOR", "VENDOR_RETURNED",
+                        "REPAIR_COMPLETED", "QUALITY_CHECK_PASSED", "PART_ADDED", "COMMENT_ADDED"),
+                found.getAuditTrail().subList(initial, found.getAuditTrail().size()).stream().map(WorkOrderAuditEntry::action).toList());
     }
 
     @Test
