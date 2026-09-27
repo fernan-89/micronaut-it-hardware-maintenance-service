@@ -8,12 +8,22 @@ import com.thinklab.domain.repository.WorkOrderRepository;
 import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-/** Projects the immutable forensic ledger of a WorkOrder (BIAN Behavior Qualifier: {@code audit-log/retrieve}). */
+/**
+ * Projects the immutable forensic ledger of a WorkOrder (BIAN Behavior Qualifier: {@code audit-log/retrieve}).
+ *
+ * <p>Returns {@code Mono<List<...>>}, not {@code Flux<...>}: a controller method returning a bare
+ * {@code Flux} is streamed by Micronaut rather than collected, which both bypasses the RFC 7807
+ * exception handlers (an established platform gotcha) and, found live building this endpoint,
+ * can reorder the emitted elements relative to their list order under JSON streaming
+ * serialization - the ledger came back with entries out of sequence even though the underlying
+ * MongoDB array was correctly ordered. Collecting into a list first sidesteps both problems.
+ */
 @Singleton
 public class RetrieveWorkOrderAuditLogUseCase {
 
@@ -26,14 +36,13 @@ public class RetrieveWorkOrderAuditLogUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Flux<WorkOrderAuditEntryResponse> execute(UUID id, String executor, String role) {
+    public Mono<List<WorkOrderAuditEntryResponse>> execute(UUID id, String executor, String role) {
         log.info("[USE CASE] Retrieving audit ledger for WorkOrder ID: {}", id);
 
         return workOrderRepository.findById(id)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> authorize(workOrder, id, executor, role))
-                .flatMapMany(workOrder -> Flux.fromIterable(workOrder.getAuditTrail()))
-                .map(WorkOrderMapper::toResponse);
+                .map(workOrder -> workOrder.getAuditTrail().stream().map(WorkOrderMapper::toResponse).collect(Collectors.toList()));
     }
 
     private static Mono<WorkOrder> authorize(WorkOrder workOrder, UUID id, String executor, String role) {

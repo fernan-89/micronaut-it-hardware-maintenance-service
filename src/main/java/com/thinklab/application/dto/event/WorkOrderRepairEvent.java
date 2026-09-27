@@ -1,5 +1,7 @@
 package com.thinklab.application.dto.event;
 
+import io.micronaut.serde.annotation.Serdeable;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -11,6 +13,7 @@ import java.util.UUID;
  * {@code Action.MAINTENANCE} / {@code Action.DEPLOY} - this service never calls asset-registry
  * synchronously.
  */
+@Serdeable
 public record WorkOrderRepairEvent(UUID workOrderId, UUID organisationId, UUID assetId, Instant occurredAt) {
 
     public static final String REPAIR_STARTED_SUBJECT = "thinklab.it-hardware-maintenance.workorder.repair-started";

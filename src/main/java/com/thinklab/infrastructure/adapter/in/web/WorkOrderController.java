@@ -40,7 +40,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -254,7 +253,7 @@ public class WorkOrderController {
 
     /** Behavior Qualifier: {@code audit-log/retrieve}. Immutable forensic ledger of the WorkOrder. */
     @Get("/{id}/audit-log/retrieve")
-    public Flux<WorkOrderAuditEntryResponse> retrieveAuditLog(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role) {
+    public Mono<List<WorkOrderAuditEntryResponse>> retrieveAuditLog(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role) {
         return retrieveWorkOrderAuditLogUseCase.execute(id, executor, role);
     }
 

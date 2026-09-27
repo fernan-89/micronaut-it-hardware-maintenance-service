@@ -223,9 +223,9 @@ class WorkOrderControllerTest {
     @DisplayName("audit-log/retrieve delegates to RetrieveWorkOrderAuditLogUseCase")
     void retrieveAuditLog() {
         WorkOrderAuditEntryResponse entry = new WorkOrderAuditEntryResponse(Instant.now(), "INITIATED", EXECUTOR, null, "REQUESTED", "d");
-        when(retrieveWorkOrderAuditLogUseCase.execute(id, EXECUTOR, "OPERATOR")).thenReturn(Flux.just(entry));
+        when(retrieveWorkOrderAuditLogUseCase.execute(id, EXECUTOR, "OPERATOR")).thenReturn(Mono.just(java.util.List.of(entry)));
 
-        var result = controller.retrieveAuditLog(id, EXECUTOR, "OPERATOR").collectList().block();
+        var result = controller.retrieveAuditLog(id, EXECUTOR, "OPERATOR").block();
         assertEquals(1, result.size());
     }
 }
