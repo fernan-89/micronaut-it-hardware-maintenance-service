@@ -27,7 +27,7 @@ public interface WorkOrderRepository {
 
     Mono<WorkOrder> create(WorkOrder workOrder);
 
-    Mono<WorkOrder> findById(UUID id);
+    Mono<WorkOrder> findById(UUID id, UUID organisationId);
 
     /**
      * Tenant-scoped listing. A {@code requesterId} filter is how the application layer enforces

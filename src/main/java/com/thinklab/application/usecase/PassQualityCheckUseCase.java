@@ -28,10 +28,10 @@ public class PassQualityCheckUseCase {
         this.eventPublisher = eventPublisher;
     }
 
-    public Mono<Void> execute(UUID id, PassQualityCheckRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, PassQualityCheckRequest request, String executor) {
         log.info("[USE CASE] Recording a passed quality check for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.pass(request.resolutionCode(), executor);

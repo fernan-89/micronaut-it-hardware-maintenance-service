@@ -30,10 +30,10 @@ public class TriageWorkOrderUseCase {
         this.calendarPort = calendarPort;
     }
 
-    public Mono<Void> execute(UUID id, TriageWorkOrderRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, TriageWorkOrderRequest request, String executor) {
         log.info("[USE CASE] Triaging WorkOrder ID: {} with priority: {}", id, request.priority());
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     Instant now = Instant.now();

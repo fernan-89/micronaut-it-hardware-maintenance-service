@@ -50,7 +50,7 @@ class WorkOrderLifecycleUseCaseTest {
         requesterId = UUID.randomUUID();
         workOrder = WorkOrder.createNew(UUID.randomUUID(), organisationId, assetId, requesterId, "t", "s",
                 WorkOrderType.CORRECTIVE, null, null, EXECUTOR);
-        lenient().when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        lenient().when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
     }
 
     // --- TriageWorkOrderUseCase ---
@@ -65,7 +65,7 @@ class WorkOrderLifecycleUseCaseTest {
         when(workOrderRepository.updateTriage(any(), any(), any(), any(), any(), any())).thenReturn(Mono.empty());
         TriageWorkOrderUseCase useCase = new TriageWorkOrderUseCase(workOrderRepository, calendarPort);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new TriageWorkOrderRequest(Priority.P1), EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new TriageWorkOrderRequest(Priority.P1), EXECUTOR)).verifyComplete();
         verify(workOrderRepository).updateTriage(workOrder.getId(), Priority.P1, responseDue, resolutionDue, workOrder.getStatus(), workOrder.getAuditTrail().get(1));
     }
 
@@ -73,10 +73,10 @@ class WorkOrderLifecycleUseCaseTest {
     @DisplayName("triage: not found surfaces WorkOrderNotFoundException")
     void triageNotFound() {
         UUID unknown = UUID.randomUUID();
-        when(workOrderRepository.findById(unknown)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(unknown, organisationId)).thenReturn(Mono.empty());
         TriageWorkOrderUseCase useCase = new TriageWorkOrderUseCase(workOrderRepository, calendarPort);
 
-        StepVerifier.create(useCase.execute(unknown, new TriageWorkOrderRequest(Priority.P1), EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(useCase.execute(unknown, organisationId, new TriageWorkOrderRequest(Priority.P1), EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
     }
 
     // --- ControlWorkOrderUseCase ---
@@ -86,7 +86,7 @@ class WorkOrderLifecycleUseCaseTest {
     void controlIllegalTransition() {
         ControlWorkOrderUseCase useCase = new ControlWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR))
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR))
                 .expectError(InvalidWorkOrderStatusException.class)
                 .verify();
     }
@@ -98,24 +98,24 @@ class WorkOrderLifecycleUseCaseTest {
         ControlWorkOrderUseCase useCase = new ControlWorkOrderUseCase(workOrderRepository);
 
         workOrder.triage(Priority.P1, Instant.now(), Instant.now(), EXECUTOR);
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR)).verifyComplete();
 
         workOrder.start(EXECUTOR);
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.AWAIT_PARTS, EXECUTOR)).verifyComplete();
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.RESUME, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.AWAIT_PARTS, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.RESUME, EXECUTOR)).verifyComplete();
 
         workOrder.completeRepair("d", 0, EXECUTOR);
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.FAIL, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.FAIL, EXECUTOR)).verifyComplete();
 
         workOrder.completeRepair("d2", 0, EXECUTOR);
         workOrder.pass("rc", EXECUTOR);
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.REOPEN, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.REOPEN, EXECUTOR)).verifyComplete();
 
         workOrder.escalateToVendor("v", "c", EXECUTOR);
         workOrder.vendorReturned(EXECUTOR);
         workOrder.completeRepair("d3", 0, EXECUTOR);
         workOrder.pass("rc2", EXECUTOR);
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.CLOSE, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.CLOSE, EXECUTOR)).verifyComplete();
     }
 
     @Test
@@ -124,7 +124,7 @@ class WorkOrderLifecycleUseCaseTest {
         when(workOrderRepository.updateStatus(any(), any(), any())).thenReturn(Mono.empty());
         ControlWorkOrderUseCase useCase = new ControlWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), ControlWorkOrderUseCase.Action.CANCEL, EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), ControlWorkOrderUseCase.Action.CANCEL, EXECUTOR)).verifyComplete();
     }
 
     // --- StartRepairUseCase ---
@@ -138,7 +138,7 @@ class WorkOrderLifecycleUseCaseTest {
         when(eventPublisher.publishRepairStarted(workOrder)).thenReturn(Mono.empty());
         StartRepairUseCase useCase = new StartRepairUseCase(workOrderRepository, eventPublisher);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), EXECUTOR)).verifyComplete();
         verify(eventPublisher).publishRepairStarted(workOrder);
     }
 
@@ -146,10 +146,10 @@ class WorkOrderLifecycleUseCaseTest {
     @DisplayName("start: not found surfaces WorkOrderNotFoundException")
     void startNotFound() {
         UUID unknown = UUID.randomUUID();
-        when(workOrderRepository.findById(unknown)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(unknown, organisationId)).thenReturn(Mono.empty());
         StartRepairUseCase useCase = new StartRepairUseCase(workOrderRepository, eventPublisher);
 
-        StepVerifier.create(useCase.execute(unknown, EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(useCase.execute(unknown, organisationId, EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
     }
 
     // --- EscalateWorkOrderUseCase / VendorReturnedUseCase ---
@@ -162,8 +162,8 @@ class WorkOrderLifecycleUseCaseTest {
         EscalateWorkOrderUseCase escalate = new EscalateWorkOrderUseCase(workOrderRepository);
         VendorReturnedUseCase vendorReturned = new VendorReturnedUseCase(workOrderRepository);
 
-        StepVerifier.create(escalate.execute(workOrder.getId(), new EscalateWorkOrderRequest("Acme", "CASE-1"), EXECUTOR)).verifyComplete();
-        StepVerifier.create(vendorReturned.execute(workOrder.getId(), EXECUTOR)).verifyComplete();
+        StepVerifier.create(escalate.execute(workOrder.getId(), workOrder.getOrganisationId(), new EscalateWorkOrderRequest("Acme", "CASE-1"), EXECUTOR)).verifyComplete();
+        StepVerifier.create(vendorReturned.execute(workOrder.getId(), workOrder.getOrganisationId(), EXECUTOR)).verifyComplete();
     }
 
     // --- CompleteRepairUseCase / PassQualityCheckUseCase ---
@@ -180,12 +180,27 @@ class WorkOrderLifecycleUseCaseTest {
         CompleteRepairUseCase completeRepair = new CompleteRepairUseCase(workOrderRepository);
         PassQualityCheckUseCase pass = new PassQualityCheckUseCase(workOrderRepository, eventPublisher);
 
-        StepVerifier.create(completeRepair.execute(workOrder.getId(), new CompleteRepairRequest("diag", 30), EXECUTOR)).verifyComplete();
-        StepVerifier.create(pass.execute(workOrder.getId(), new PassQualityCheckRequest("RC-1"), EXECUTOR)).verifyComplete();
+        StepVerifier.create(completeRepair.execute(workOrder.getId(), workOrder.getOrganisationId(), new CompleteRepairRequest("diag", 30), EXECUTOR)).verifyComplete();
+        StepVerifier.create(pass.execute(workOrder.getId(), workOrder.getOrganisationId(), new PassQualityCheckRequest("RC-1"), EXECUTOR)).verifyComplete();
         verify(eventPublisher).publishRepairCompleted(workOrder);
     }
 
     private static Duration eqDuration(Duration duration) {
         return org.mockito.ArgumentMatchers.eq(duration);
+    }
+
+    @Test
+    @DisplayName("every by-id lookup is made in the caller's tenant: another tenant's work order is the same as none, and nothing is written")
+    void anotherTenantsWorkOrder() {
+        UUID id = UUID.randomUUID();
+        UUID other = UUID.randomUUID();
+        when(workOrderRepository.findById(id, other)).thenReturn(Mono.empty());
+
+        StepVerifier.create(new RetrieveWorkOrderUseCase(workOrderRepository).execute(id, other, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(new RetrieveWorkOrderAuditLogUseCase(workOrderRepository).execute(id, other, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(new ControlWorkOrderUseCase(workOrderRepository).execute(id, other, ControlWorkOrderUseCase.Action.CANCEL, EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
+
+        org.mockito.Mockito.verify(workOrderRepository, org.mockito.Mockito.never()).findById(id, organisationId);
+        org.mockito.Mockito.verifyNoMoreInteractions(workOrderRepository);
     }
 }

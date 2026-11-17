@@ -22,10 +22,10 @@ public class UpdateWorkOrderUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, UpdateWorkOrderRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, UpdateWorkOrderRequest request, String executor) {
         log.info("[USE CASE] Updating basic info for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.updateBasicInfo(request.title(), request.symptom(), request.location(), request.loanerAssetId(), executor);

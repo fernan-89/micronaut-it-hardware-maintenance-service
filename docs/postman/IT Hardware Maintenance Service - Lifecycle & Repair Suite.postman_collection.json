@@ -268,6 +268,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -311,6 +315,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -354,6 +362,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -395,6 +407,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -430,6 +446,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -465,6 +485,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -501,6 +525,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -537,6 +565,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -581,6 +613,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "POST",
@@ -625,6 +661,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "POST",
@@ -669,6 +709,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -713,6 +757,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -749,6 +797,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -793,6 +845,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -834,6 +890,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -931,6 +991,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -974,6 +1038,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1010,6 +1078,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1054,6 +1126,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1090,6 +1166,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1134,6 +1214,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1178,6 +1262,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1214,6 +1302,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1298,6 +1390,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1488,6 +1584,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -1523,6 +1623,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "GET",
@@ -1611,6 +1715,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1655,6 +1763,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1704,6 +1816,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1739,6 +1855,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1788,6 +1908,10 @@
               {
                 "key": "X-Executor",
                 "value": "{{executor}}"
+              },
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{organisationId}}"
               }
             ],
             "method": "PUT",
@@ -1807,6 +1931,139 @@
         }
       ],
       "name": "03. Negative Tests & Boundary Validation"
+    },
+    {
+      "name": "04. Tenant Isolation on the By-Id Routes",
+      "item": [
+        {
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('otherOrganisationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "90. Read it as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "it-hardware-maintenance",
+                "v1",
+                "{{workOrderId}}",
+                "retrieve"
+              ],
+              "raw": "{{base_url}}/it-hardware-maintenance/v1/{{workOrderId}}/retrieve"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "91. Its audit log as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "GET",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "it-hardware-maintenance",
+                "v1",
+                "{{workOrderId}}",
+                "audit-log",
+                "retrieve"
+              ],
+              "raw": "{{base_url}}/it-hardware-maintenance/v1/{{workOrderId}}/audit-log/retrieve"
+            }
+          }
+        },
+        {
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404 (another tenant\\'s object is the same as none)', () => pm.response.to.have.status(404));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "name": "92. Change it as another tenant (404)",
+          "request": {
+            "header": [
+              {
+                "key": "X-Tenant-Id",
+                "value": "{{otherOrganisationId}}"
+              },
+              {
+                "key": "X-Executor",
+                "value": "{{executor}}"
+              }
+            ],
+            "method": "PUT",
+            "url": {
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "it-hardware-maintenance",
+                "v1",
+                "{{workOrderId}}",
+                "control",
+                "cancel"
+              ],
+              "raw": "{{base_url}}/it-hardware-maintenance/v1/{{workOrderId}}/control/cancel"
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [

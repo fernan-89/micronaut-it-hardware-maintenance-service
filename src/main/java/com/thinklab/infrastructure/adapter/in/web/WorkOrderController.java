@@ -130,11 +130,11 @@ public class WorkOrderController {
     /** Behavior Qualifier: {@code retrieve}. Fetches a single WorkOrder by UUID. */
     @Get("/{id}/retrieve")
     public Mono<HttpResponse<WorkOrderResponse>> retrieveById(
-            @PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role
+            @PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role
     ) {
         log.info("[ACTION: RETRIEVE_WORKORDER] Received request to get WorkOrder by ID: {}", id);
 
-        return retrieveWorkOrderUseCase.execute(id, executor, role).map(HttpResponse::ok);
+        return retrieveWorkOrderUseCase.execute(id, UUID.fromString(tenantId), executor, role).map(HttpResponse::ok);
     }
 
     /** Behavior Qualifier: {@code retrieve} (collection). Lists WorkOrders scoped to a tenant. */
@@ -152,114 +152,114 @@ public class WorkOrderController {
 
     /** Behavior Qualifier: {@code update}. Updates basic WorkOrder info. */
     @Put("/{id}/update")
-    public Mono<HttpResponse<Void>> update(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid UpdateWorkOrderRequest request) {
-        return updateWorkOrderUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+    public Mono<HttpResponse<Void>> update(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid UpdateWorkOrderRequest request) {
+        return updateWorkOrderUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code triage}. REQUESTED -&gt; TRIAGED. */
     @Put("/{id}/triage")
-    public Mono<HttpResponse<Void>> triage(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid TriageWorkOrderRequest request) {
-        return triageWorkOrderUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+    public Mono<HttpResponse<Void>> triage(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid TriageWorkOrderRequest request) {
+        return triageWorkOrderUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code schedule}. TRIAGED -&gt; SCHEDULED. */
     @Put("/{id}/schedule")
-    public Mono<HttpResponse<Void>> schedule(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.SCHEDULE, executor);
+    public Mono<HttpResponse<Void>> schedule(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.SCHEDULE, executor);
     }
 
     /** Behavior Qualifier: {@code control/start}. SCHEDULED -&gt; IN_REPAIR; publishes {@code repair-started}. */
     @Put("/{id}/control/start")
-    public Mono<HttpResponse<Void>> controlStart(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+    public Mono<HttpResponse<Void>> controlStart(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
         log.info("[ACTION: CONTROL_WORKORDER] [EXECUTOR: {}] start for ID: {}", executor, id);
-        return startRepairUseCase.execute(id, executor).thenReturn(HttpResponse.noContent());
+        return startRepairUseCase.execute(id, UUID.fromString(tenantId), executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/await-parts}. IN_REPAIR -&gt; AWAITING_PARTS. */
     @Put("/{id}/control/await-parts")
-    public Mono<HttpResponse<Void>> controlAwaitParts(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.AWAIT_PARTS, executor);
+    public Mono<HttpResponse<Void>> controlAwaitParts(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.AWAIT_PARTS, executor);
     }
 
     /** Behavior Qualifier: {@code control/resume}. AWAITING_PARTS -&gt; IN_REPAIR. */
     @Put("/{id}/control/resume")
-    public Mono<HttpResponse<Void>> controlResume(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.RESUME, executor);
+    public Mono<HttpResponse<Void>> controlResume(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.RESUME, executor);
     }
 
     /** Behavior Qualifier: {@code control/escalate}. TRIAGED -&gt; ESCALATED_TO_VENDOR. */
     @Put("/{id}/control/escalate")
-    public Mono<HttpResponse<Void>> controlEscalate(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid EscalateWorkOrderRequest request) {
-        return escalateWorkOrderUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+    public Mono<HttpResponse<Void>> controlEscalate(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid EscalateWorkOrderRequest request) {
+        return escalateWorkOrderUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/vendor-returned}. ESCALATED_TO_VENDOR -&gt; IN_REPAIR. */
     @Put("/{id}/control/vendor-returned")
-    public Mono<HttpResponse<Void>> controlVendorReturned(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+    public Mono<HttpResponse<Void>> controlVendorReturned(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
         log.info("[ACTION: CONTROL_WORKORDER] [EXECUTOR: {}] vendor-returned for ID: {}", executor, id);
-        return vendorReturnedUseCase.execute(id, executor).thenReturn(HttpResponse.noContent());
+        return vendorReturnedUseCase.execute(id, UUID.fromString(tenantId), executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/complete-repair}. IN_REPAIR -&gt; QUALITY_CHECK. */
     @Put("/{id}/control/complete-repair")
-    public Mono<HttpResponse<Void>> controlCompleteRepair(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid CompleteRepairRequest request) {
-        return completeRepairUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+    public Mono<HttpResponse<Void>> controlCompleteRepair(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid CompleteRepairRequest request) {
+        return completeRepairUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/pass}. QUALITY_CHECK -&gt; RESOLVED; publishes {@code repair-completed}. */
     @Put("/{id}/control/pass")
-    public Mono<HttpResponse<Void>> controlPass(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid PassQualityCheckRequest request) {
-        return passQualityCheckUseCase.execute(id, request, executor).thenReturn(HttpResponse.noContent());
+    public Mono<HttpResponse<Void>> controlPass(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid PassQualityCheckRequest request) {
+        return passQualityCheckUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.noContent());
     }
 
     /** Behavior Qualifier: {@code control/fail}. QUALITY_CHECK -&gt; IN_REPAIR. */
     @Put("/{id}/control/fail")
-    public Mono<HttpResponse<Void>> controlFail(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.FAIL, executor);
+    public Mono<HttpResponse<Void>> controlFail(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.FAIL, executor);
     }
 
     /** Behavior Qualifier: {@code control/close}. RESOLVED -&gt; CLOSED (terminal). */
     @Put("/{id}/control/close")
-    public Mono<HttpResponse<Void>> controlClose(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.CLOSE, executor);
+    public Mono<HttpResponse<Void>> controlClose(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.CLOSE, executor);
     }
 
     /** Behavior Qualifier: {@code control/reopen}. RESOLVED -&gt; TRIAGED. */
     @Put("/{id}/control/reopen")
-    public Mono<HttpResponse<Void>> controlReopen(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.REOPEN, executor);
+    public Mono<HttpResponse<Void>> controlReopen(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.REOPEN, executor);
     }
 
     /** Behavior Qualifier: {@code control/cancel}. Terminal, replaces DELETE. */
     @Put("/{id}/control/cancel")
-    public Mono<HttpResponse<Void>> controlCancel(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
-        return control(id, ControlWorkOrderUseCase.Action.CANCEL, executor);
+    public Mono<HttpResponse<Void>> controlCancel(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor) {
+        return control(id, tenantId, ControlWorkOrderUseCase.Action.CANCEL, executor);
     }
 
     /** Behavior Qualifier: {@code part/initiate}. */
     @Post("/{id}/part/initiate")
-    public Mono<HttpResponse<Void>> initiatePart(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid InitiatePartRequest request) {
-        return initiatePartUseCase.execute(id, request, executor).thenReturn(HttpResponse.status(HttpStatus.CREATED));
+    public Mono<HttpResponse<Void>> initiatePart(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Body @Valid InitiatePartRequest request) {
+        return initiatePartUseCase.execute(id, UUID.fromString(tenantId), request, executor).thenReturn(HttpResponse.status(HttpStatus.CREATED));
     }
 
     /** Behavior Qualifier: {@code comment/initiate}. */
     @Post("/{id}/comment/initiate")
     public Mono<HttpResponse<Void>> initiateComment(
-            @PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role,
+            @PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role,
             @Body @Valid InitiateCommentRequest request
     ) {
-        return initiateCommentUseCase.execute(id, request, executor, role).thenReturn(HttpResponse.status(HttpStatus.CREATED));
+        return initiateCommentUseCase.execute(id, UUID.fromString(tenantId), request, executor, role).thenReturn(HttpResponse.status(HttpStatus.CREATED));
     }
 
     /** Behavior Qualifier: {@code audit-log/retrieve}. Immutable forensic ledger of the WorkOrder. */
     @Get("/{id}/audit-log/retrieve")
-    public Mono<List<WorkOrderAuditEntryResponse>> retrieveAuditLog(@PathVariable UUID id, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role) {
-        return retrieveWorkOrderAuditLogUseCase.execute(id, executor, role);
+    public Mono<List<WorkOrderAuditEntryResponse>> retrieveAuditLog(@PathVariable UUID id, @Header(TENANT_HEADER) @NotBlank String tenantId, @Header(EXECUTOR_HEADER) @NotBlank String executor, @Header(ROLE_HEADER) @Nullable String role) {
+        return retrieveWorkOrderAuditLogUseCase.execute(id, UUID.fromString(tenantId), executor, role);
     }
 
-    private Mono<HttpResponse<Void>> control(UUID id, ControlWorkOrderUseCase.Action action, String executor) {
+    private Mono<HttpResponse<Void>> control(UUID id, String tenantId, ControlWorkOrderUseCase.Action action, String executor) {
         log.info("[ACTION: CONTROL_WORKORDER] [EXECUTOR: {}] {} for ID: {}", executor, action, id);
 
-        return controlWorkOrderUseCase.execute(id, action, executor).thenReturn(HttpResponse.noContent());
+        return controlWorkOrderUseCase.execute(id, UUID.fromString(tenantId), action, executor).thenReturn(HttpResponse.noContent());
     }
 }

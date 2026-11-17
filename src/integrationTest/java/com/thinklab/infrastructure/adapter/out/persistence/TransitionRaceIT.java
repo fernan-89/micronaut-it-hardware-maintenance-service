@@ -57,9 +57,9 @@ class TransitionRaceIT implements TestPropertyProvider {
         return order;
     }
 
-    private List<String> run(UUID id, ControlWorkOrderUseCase.Action... actions) {
+    private List<String> run(UUID id, UUID organisationId, ControlWorkOrderUseCase.Action... actions) {
         return Flux.fromArray(actions)
-                .flatMap(action -> control.execute(id, action, EXECUTOR).thenReturn("OK:" + action.name())
+                .flatMap(action -> control.execute(id, organisationId, action, EXECUTOR).thenReturn("OK:" + action.name())
                         .onErrorResume(e -> Mono.just(e.getClass().getSimpleName())), actions.length)
                 .collectList().block(Duration.ofSeconds(30));
     }
@@ -71,11 +71,11 @@ class TransitionRaceIT implements TestPropertyProvider {
         ControlWorkOrderUseCase.Action[] tenCancels = new ControlWorkOrderUseCase.Action[10];
         java.util.Arrays.fill(tenCancels, ControlWorkOrderUseCase.Action.CANCEL);
 
-        List<String> results = run(order.getId(), tenCancels);
+        List<String> results = run(order.getId(), order.getOrganisationId(), tenCancels);
 
         assertEquals(1, results.stream().filter(r -> r.startsWith("OK")).count(), results.toString());
         assertEquals(9, results.stream().filter(InvalidWorkOrderStatusException.class.getSimpleName()::equals).count(), results.toString());
-        WorkOrder stored = repository.findById(order.getId()).block();
+        WorkOrder stored = repository.findById(order.getId(), order.getOrganisationId()).block();
         assertEquals(WorkOrderStatus.CANCELLED, stored.getStatus());
         assertEquals(2, stored.getAuditTrail().size(), "one entry for creating and one for the single cancel that won");
     }
@@ -85,11 +85,11 @@ class TransitionRaceIT implements TestPropertyProvider {
     void scheduleAgainstCancel() {
         WorkOrder order = triaged();
 
-        List<String> results = run(order.getId(), ControlWorkOrderUseCase.Action.SCHEDULE, ControlWorkOrderUseCase.Action.CANCEL);
+        List<String> results = run(order.getId(), order.getOrganisationId(), ControlWorkOrderUseCase.Action.SCHEDULE, ControlWorkOrderUseCase.Action.CANCEL);
 
         List<String> winners = results.stream().filter(r -> r.startsWith("OK")).toList();
         assertEquals(1, winners.size(), results.toString());
-        WorkOrder stored = repository.findById(order.getId()).block();
+        WorkOrder stored = repository.findById(order.getId(), order.getOrganisationId()).block();
         assertEquals(winners.get(0).equals("OK:SCHEDULE") ? WorkOrderStatus.SCHEDULED : WorkOrderStatus.CANCELLED, stored.getStatus());
         assertEquals(3, stored.getAuditTrail().size());
     }

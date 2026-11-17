@@ -83,8 +83,8 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
     }
 
     @Override
-    public Mono<WorkOrder> findById(UUID id) {
-        return Mono.from(getCollection().find(Filters.eq(FIELD_ID, id)).first())
+    public Mono<WorkOrder> findById(UUID id, UUID organisationId) {
+        return Mono.from(getCollection().find(Filters.and(Filters.eq(FIELD_ID, id), Filters.eq("organisationId", organisationId))).first())
                 .map(WorkOrderPersistenceMapper::toDomain);
     }
 

@@ -27,10 +27,10 @@ public class StartRepairUseCase {
         this.eventPublisher = eventPublisher;
     }
 
-    public Mono<Void> execute(UUID id, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, String executor) {
         log.info("[USE CASE] Starting repair for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.start(executor);

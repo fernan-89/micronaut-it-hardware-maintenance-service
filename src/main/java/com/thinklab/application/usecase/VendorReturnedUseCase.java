@@ -21,10 +21,10 @@ public class VendorReturnedUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, String executor) {
         log.info("[USE CASE] Recording vendor return for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.vendorReturned(executor);
