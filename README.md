@@ -66,7 +66,7 @@ generic `control/{status}` endpoint, since several carry their own payload (ADR-
 
 ## BIAN Behavior Qualifier Contract (`/it-hardware-maintenance/v1`)
 
-`X-Tenant-Id` is mandatory on `initiate` and the collection `retrieve`; `X-Executor` is mandatory on
+`X-Tenant-Id` is mandatory on every route (ADR-036: another tenant's work order is a 404); `X-Executor` is mandatory on
 every mutation and read; `X-Role` is optional and, when `REQUESTER`, scopes every read/write to the
 caller's own tickets and hides internal comments (ADR-032). There is no `DELETE`.
 

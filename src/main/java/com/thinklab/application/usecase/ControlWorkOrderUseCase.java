@@ -27,10 +27,10 @@ public class ControlWorkOrderUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, Action action, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, Action action, String executor) {
         log.info("[USE CASE] Controlling WorkOrder lifecycle: {} for ID: {}", action, id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     WorkOrderAuditEntry entry = action.apply(workOrder, executor);

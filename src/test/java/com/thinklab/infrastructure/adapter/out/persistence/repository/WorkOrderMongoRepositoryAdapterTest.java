@@ -100,7 +100,7 @@ class WorkOrderMongoRepositoryAdapterTest {
             return null;
         }).when(publisher).subscribe(any());
 
-        StepVerifier.create(adapter.findById(workOrderId))
+        StepVerifier.create(adapter.findById(workOrderId, UUID.randomUUID()))
                 .assertNext(found -> org.junit.jupiter.api.Assertions.assertEquals(workOrderId, found.getId()))
                 .verifyComplete();
     }

@@ -31,10 +31,10 @@ public class RetrieveWorkOrderUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<WorkOrderResponse> execute(UUID id, String executor, String role) {
+    public Mono<WorkOrderResponse> execute(UUID id, UUID organisationId, String executor, String role) {
         log.info("[USE CASE] Retrieving WorkOrder by ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> authorize(workOrder, id, executor, role))
                 .map(workOrder -> WorkOrderMapper.toResponse(workOrder, !REQUESTER_ROLE.equals(role)));

@@ -34,12 +34,12 @@ public class InitiateCommentUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, InitiateCommentRequest request, String executor, String role) {
+    public Mono<Void> execute(UUID id, UUID organisationId, InitiateCommentRequest request, String executor, String role) {
         log.info("[USE CASE] Adding comment to WorkOrder ID: {}", id);
 
         boolean internal = !REQUESTER_ROLE.equals(role) && request.internal();
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> hashServicePort.generateSovereignId("workorder-comment-creation")
                         .flatMap(commentId -> {

@@ -22,10 +22,10 @@ public class CompleteRepairUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, CompleteRepairRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, CompleteRepairRequest request, String executor) {
         log.info("[USE CASE] Completing repair for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.completeRepair(request.diagnosis(), request.additionalLaborMinutes(), executor);

@@ -22,10 +22,10 @@ public class EscalateWorkOrderUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, EscalateWorkOrderRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, EscalateWorkOrderRequest request, String executor) {
         log.info("[USE CASE] Escalating WorkOrder ID: {} to vendor: {}", id, request.vendorName());
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> {
                     var entry = workOrder.escalateToVendor(request.vendorName(), request.caseNumber(), executor);

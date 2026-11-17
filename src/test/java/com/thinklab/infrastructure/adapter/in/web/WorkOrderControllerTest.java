@@ -97,9 +97,9 @@ class WorkOrderControllerTest {
     @Test
     @DisplayName("retrieveById returns 200 OK")
     void retrieveById() {
-        when(retrieveWorkOrderUseCase.execute(id, EXECUTOR, "OPERATOR")).thenReturn(Mono.just(sampleResponse()));
+        when(retrieveWorkOrderUseCase.execute(id, UUID.fromString(TENANT), EXECUTOR, "OPERATOR")).thenReturn(Mono.just(sampleResponse()));
 
-        var response = controller.retrieveById(id, EXECUTOR, "OPERATOR").block();
+        var response = controller.retrieveById(id, TENANT, EXECUTOR, "OPERATOR").block();
         assertEquals(HttpStatus.OK, response.getStatus());
     }
 
@@ -116,116 +116,116 @@ class WorkOrderControllerTest {
     @DisplayName("update returns 204 No Content")
     void update() {
         UpdateWorkOrderRequest request = new UpdateWorkOrderRequest("t", "s", null, null);
-        when(updateWorkOrderUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(updateWorkOrderUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.update(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.update(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("triage returns 204 No Content")
     void triage() {
         TriageWorkOrderRequest request = new TriageWorkOrderRequest(Priority.P1);
-        when(triageWorkOrderUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(triageWorkOrderUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.triage(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.triage(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("schedule dispatches ControlWorkOrderUseCase.Action.SCHEDULE")
     void schedule() {
-        when(controlWorkOrderUseCase.execute(id, ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR)).thenReturn(Mono.empty());
+        when(controlWorkOrderUseCase.execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.SCHEDULE, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.schedule(id, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.schedule(id, TENANT, EXECUTOR).block().getStatus());
     }
 
     @Test
     @DisplayName("control/start dispatches StartRepairUseCase")
     void controlStart() {
-        when(startRepairUseCase.execute(id, EXECUTOR)).thenReturn(Mono.empty());
+        when(startRepairUseCase.execute(id, UUID.fromString(TENANT), EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlStart(id, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlStart(id, TENANT, EXECUTOR).block().getStatus());
     }
 
     @Test
     @DisplayName("control/await-parts, resume, fail, close, reopen and cancel each dispatch their Action")
     void controlSimpleActions() {
-        lenient().when(controlWorkOrderUseCase.execute(any(), any(), eq(EXECUTOR))).thenReturn(Mono.empty());
+        lenient().when(controlWorkOrderUseCase.execute(any(), any(), any(), eq(EXECUTOR))).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlAwaitParts(id, EXECUTOR).block().getStatus());
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlResume(id, EXECUTOR).block().getStatus());
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlFail(id, EXECUTOR).block().getStatus());
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlClose(id, EXECUTOR).block().getStatus());
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlReopen(id, EXECUTOR).block().getStatus());
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlCancel(id, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlAwaitParts(id, TENANT, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlResume(id, TENANT, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlFail(id, TENANT, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlClose(id, TENANT, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlReopen(id, TENANT, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlCancel(id, TENANT, EXECUTOR).block().getStatus());
 
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.AWAIT_PARTS, EXECUTOR);
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.RESUME, EXECUTOR);
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.FAIL, EXECUTOR);
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.CLOSE, EXECUTOR);
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.REOPEN, EXECUTOR);
-        verify(controlWorkOrderUseCase).execute(id, ControlWorkOrderUseCase.Action.CANCEL, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.AWAIT_PARTS, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.RESUME, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.FAIL, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.CLOSE, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.REOPEN, EXECUTOR);
+        verify(controlWorkOrderUseCase).execute(id, UUID.fromString(TENANT), ControlWorkOrderUseCase.Action.CANCEL, EXECUTOR);
     }
 
     @Test
     @DisplayName("control/escalate returns 204 No Content")
     void controlEscalate() {
         EscalateWorkOrderRequest request = new EscalateWorkOrderRequest("Acme", "CASE-1");
-        when(escalateWorkOrderUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(escalateWorkOrderUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlEscalate(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlEscalate(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("control/vendor-returned returns 204 No Content")
     void controlVendorReturned() {
-        when(vendorReturnedUseCase.execute(id, EXECUTOR)).thenReturn(Mono.empty());
+        when(vendorReturnedUseCase.execute(id, UUID.fromString(TENANT), EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlVendorReturned(id, EXECUTOR).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlVendorReturned(id, TENANT, EXECUTOR).block().getStatus());
     }
 
     @Test
     @DisplayName("control/complete-repair returns 204 No Content")
     void controlCompleteRepair() {
         CompleteRepairRequest request = new CompleteRepairRequest("diag", 10);
-        when(completeRepairUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(completeRepairUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlCompleteRepair(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlCompleteRepair(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("control/pass returns 204 No Content")
     void controlPass() {
         PassQualityCheckRequest request = new PassQualityCheckRequest("RC-1");
-        when(passQualityCheckUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(passQualityCheckUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.NO_CONTENT, controller.controlPass(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.NO_CONTENT, controller.controlPass(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("part/initiate returns 201 Created")
     void initiatePart() {
         InitiatePartRequest request = new InitiatePartRequest("Flex cable", 1);
-        when(initiatePartUseCase.execute(id, request, EXECUTOR)).thenReturn(Mono.empty());
+        when(initiatePartUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR)).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.CREATED, controller.initiatePart(id, EXECUTOR, request).block().getStatus());
+        assertEquals(HttpStatus.CREATED, controller.initiatePart(id, TENANT, EXECUTOR, request).block().getStatus());
     }
 
     @Test
     @DisplayName("comment/initiate returns 201 Created")
     void initiateComment() {
         InitiateCommentRequest request = new InitiateCommentRequest("note", false);
-        when(initiateCommentUseCase.execute(id, request, EXECUTOR, "OPERATOR")).thenReturn(Mono.empty());
+        when(initiateCommentUseCase.execute(id, UUID.fromString(TENANT), request, EXECUTOR, "OPERATOR")).thenReturn(Mono.empty());
 
-        assertEquals(HttpStatus.CREATED, controller.initiateComment(id, EXECUTOR, "OPERATOR", request).block().getStatus());
+        assertEquals(HttpStatus.CREATED, controller.initiateComment(id, TENANT, EXECUTOR, "OPERATOR", request).block().getStatus());
     }
 
     @Test
     @DisplayName("audit-log/retrieve delegates to RetrieveWorkOrderAuditLogUseCase")
     void retrieveAuditLog() {
         WorkOrderAuditEntryResponse entry = new WorkOrderAuditEntryResponse(Instant.now(), "INITIATED", EXECUTOR, null, "REQUESTED", "d");
-        when(retrieveWorkOrderAuditLogUseCase.execute(id, EXECUTOR, "OPERATOR")).thenReturn(Mono.just(java.util.List.of(entry)));
+        when(retrieveWorkOrderAuditLogUseCase.execute(id, UUID.fromString(TENANT), EXECUTOR, "OPERATOR")).thenReturn(Mono.just(java.util.List.of(entry)));
 
-        var result = controller.retrieveAuditLog(id, EXECUTOR, "OPERATOR").block();
+        var result = controller.retrieveAuditLog(id, TENANT, EXECUTOR, "OPERATOR").block();
         assertEquals(1, result.size());
     }
 }

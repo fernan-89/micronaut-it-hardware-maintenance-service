@@ -31,6 +31,7 @@ class WorkOrderSubResourceUseCaseTest {
     @Mock private WorkOrderRepository workOrderRepository;
 
     private WorkOrder workOrder;
+    private final UUID organisationId = UUID.randomUUID();
     private UUID requesterId;
     private static final String EXECUTOR = "op-1";
 
@@ -39,7 +40,7 @@ class WorkOrderSubResourceUseCaseTest {
         requesterId = UUID.randomUUID();
         workOrder = WorkOrder.createNew(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), requesterId,
                 "t", "s", WorkOrderType.CORRECTIVE, null, null, EXECUTOR);
-        lenient().when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        lenient().when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
     }
 
     // --- InitiatePartUseCase ---
@@ -52,17 +53,17 @@ class WorkOrderSubResourceUseCaseTest {
         when(workOrderRepository.addPart(any(), any(), any())).thenReturn(Mono.empty());
         InitiatePartUseCase useCase = new InitiatePartUseCase(hashServicePort, workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new InitiatePartRequest("Flex cable", 1), EXECUTOR)).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new InitiatePartRequest("Flex cable", 1), EXECUTOR)).verifyComplete();
     }
 
     @Test
     @DisplayName("initiatePart: not found surfaces WorkOrderNotFoundException")
     void initiatePartNotFound() {
         UUID unknown = UUID.randomUUID();
-        when(workOrderRepository.findById(unknown)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(unknown, organisationId)).thenReturn(Mono.empty());
         InitiatePartUseCase useCase = new InitiatePartUseCase(hashServicePort, workOrderRepository);
 
-        StepVerifier.create(useCase.execute(unknown, new InitiatePartRequest("d", 1), EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(useCase.execute(unknown, organisationId, new InitiatePartRequest("d", 1), EXECUTOR)).expectError(WorkOrderNotFoundException.class).verify();
     }
 
     // --- InitiateCommentUseCase ---
@@ -75,7 +76,7 @@ class WorkOrderSubResourceUseCaseTest {
         when(workOrderRepository.addComment(any(), any(), any())).thenReturn(Mono.empty());
         InitiateCommentUseCase useCase = new InitiateCommentUseCase(hashServicePort, workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new InitiateCommentRequest("note", true), EXECUTOR, "OPERATOR")).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new InitiateCommentRequest("note", true), EXECUTOR, "OPERATOR")).verifyComplete();
         Comment added = workOrder.getComments().get(0);
         org.junit.jupiter.api.Assertions.assertTrue(added.internal());
     }
@@ -88,7 +89,7 @@ class WorkOrderSubResourceUseCaseTest {
         when(workOrderRepository.addComment(any(), any(), any())).thenReturn(Mono.empty());
         InitiateCommentUseCase useCase = new InitiateCommentUseCase(hashServicePort, workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new InitiateCommentRequest("note", false), EXECUTOR, "OPERATOR")).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new InitiateCommentRequest("note", false), EXECUTOR, "OPERATOR")).verifyComplete();
         Comment added = workOrder.getComments().get(0);
         org.junit.jupiter.api.Assertions.assertFalse(added.internal());
     }
@@ -101,7 +102,7 @@ class WorkOrderSubResourceUseCaseTest {
         when(workOrderRepository.addComment(any(), any(), any())).thenReturn(Mono.empty());
         InitiateCommentUseCase useCase = new InitiateCommentUseCase(hashServicePort, workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new InitiateCommentRequest("note", true), requesterId.toString(), "REQUESTER")).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new InitiateCommentRequest("note", true), requesterId.toString(), "REQUESTER")).verifyComplete();
         Comment added = workOrder.getComments().get(0);
         org.junit.jupiter.api.Assertions.assertFalse(added.internal());
     }
@@ -113,9 +114,9 @@ class WorkOrderSubResourceUseCaseTest {
     void auditLogScoping() {
         RetrieveWorkOrderAuditLogUseCase useCase = new RetrieveWorkOrderAuditLogUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), EXECUTOR, "OPERATOR")).expectNextCount(1).verifyComplete();
-        StepVerifier.create(useCase.execute(workOrder.getId(), requesterId.toString(), "REQUESTER")).expectNextCount(1).verifyComplete();
-        StepVerifier.create(useCase.execute(workOrder.getId(), UUID.randomUUID().toString(), "REQUESTER"))
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), EXECUTOR, "OPERATOR")).expectNextCount(1).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), requesterId.toString(), "REQUESTER")).expectNextCount(1).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), UUID.randomUUID().toString(), "REQUESTER"))
                 .expectError(WorkOrderNotFoundException.class)
                 .verify();
     }
@@ -124,9 +125,9 @@ class WorkOrderSubResourceUseCaseTest {
     @DisplayName("auditLog: not found surfaces WorkOrderNotFoundException")
     void auditLogNotFound() {
         UUID unknown = UUID.randomUUID();
-        when(workOrderRepository.findById(unknown)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(unknown, organisationId)).thenReturn(Mono.empty());
         RetrieveWorkOrderAuditLogUseCase useCase = new RetrieveWorkOrderAuditLogUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(unknown, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(useCase.execute(unknown, organisationId, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
     }
 }

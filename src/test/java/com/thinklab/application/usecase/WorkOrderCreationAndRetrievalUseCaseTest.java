@@ -97,30 +97,30 @@ class WorkOrderCreationAndRetrievalUseCaseTest {
     @DisplayName("retrieveById: a not-found id surfaces WorkOrderNotFoundException")
     void retrieveByIdNotFound() {
         UUID id = UUID.randomUUID();
-        when(workOrderRepository.findById(id)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(id, organisationId)).thenReturn(Mono.empty());
         RetrieveWorkOrderUseCase useCase = new RetrieveWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(id, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
+        StepVerifier.create(useCase.execute(id, organisationId, EXECUTOR, "OPERATOR")).expectError(WorkOrderNotFoundException.class).verify();
     }
 
     @Test
     @DisplayName("retrieveById: an OPERATOR sees any ticket with internal comments included")
     void retrieveByIdAsOperator() {
         WorkOrder workOrder = newWorkOrder();
-        when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
         RetrieveWorkOrderUseCase useCase = new RetrieveWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), EXECUTOR, "OPERATOR")).expectNextCount(1).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), EXECUTOR, "OPERATOR")).expectNextCount(1).verifyComplete();
     }
 
     @Test
     @DisplayName("retrieveById: a REQUESTER viewing someone else's ticket gets the same 404 as an unknown id")
     void retrieveByIdAsRequesterForeignTicket() {
         WorkOrder workOrder = newWorkOrder();
-        when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
         RetrieveWorkOrderUseCase useCase = new RetrieveWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), UUID.randomUUID().toString(), "REQUESTER"))
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), UUID.randomUUID().toString(), "REQUESTER"))
                 .expectError(WorkOrderNotFoundException.class)
                 .verify();
     }
@@ -129,10 +129,10 @@ class WorkOrderCreationAndRetrievalUseCaseTest {
     @DisplayName("retrieveById: the owning REQUESTER can see their own ticket")
     void retrieveByIdAsOwningRequester() {
         WorkOrder workOrder = newWorkOrder();
-        when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
         RetrieveWorkOrderUseCase useCase = new RetrieveWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), requesterId.toString(), "REQUESTER")).expectNextCount(1).verifyComplete();
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), requesterId.toString(), "REQUESTER")).expectNextCount(1).verifyComplete();
     }
 
     // --- RetrieveWorkOrdersUseCase ---
@@ -156,10 +156,10 @@ class WorkOrderCreationAndRetrievalUseCaseTest {
     @DisplayName("update: not found surfaces WorkOrderNotFoundException")
     void updateNotFound() {
         UUID id = UUID.randomUUID();
-        when(workOrderRepository.findById(id)).thenReturn(Mono.empty());
+        when(workOrderRepository.findById(id, organisationId)).thenReturn(Mono.empty());
         UpdateWorkOrderUseCase useCase = new UpdateWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(id, new UpdateWorkOrderRequest("t", "s", null, null), EXECUTOR))
+        StepVerifier.create(useCase.execute(id, organisationId, new UpdateWorkOrderRequest("t", "s", null, null), EXECUTOR))
                 .expectError(WorkOrderNotFoundException.class)
                 .verify();
     }
@@ -168,12 +168,12 @@ class WorkOrderCreationAndRetrievalUseCaseTest {
     @DisplayName("update: applies the domain mutation and persists the granular update")
     void updateSuccess() {
         WorkOrder workOrder = newWorkOrder();
-        when(workOrderRepository.findById(workOrder.getId())).thenReturn(Mono.just(workOrder));
+        when(workOrderRepository.findById(workOrder.getId(), workOrder.getOrganisationId())).thenReturn(Mono.just(workOrder));
         when(workOrderRepository.updateBasicInfo(eq(workOrder.getId()), eq("New title"), eq("New symptom"), any(), any(), any()))
                 .thenReturn(Mono.empty());
         UpdateWorkOrderUseCase useCase = new UpdateWorkOrderUseCase(workOrderRepository);
 
-        StepVerifier.create(useCase.execute(workOrder.getId(), new UpdateWorkOrderRequest("New title", "New symptom", null, null), EXECUTOR))
+        StepVerifier.create(useCase.execute(workOrder.getId(), workOrder.getOrganisationId(), new UpdateWorkOrderRequest("New title", "New symptom", null, null), EXECUTOR))
                 .verifyComplete();
     }
 

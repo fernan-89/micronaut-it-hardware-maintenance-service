@@ -30,10 +30,10 @@ public class InitiatePartUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<Void> execute(UUID id, InitiatePartRequest request, String executor) {
+    public Mono<Void> execute(UUID id, UUID organisationId, InitiatePartRequest request, String executor) {
         log.info("[USE CASE] Adding part to WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> hashServicePort.generateSovereignId("workorder-part-creation")
                         .flatMap(partId -> {

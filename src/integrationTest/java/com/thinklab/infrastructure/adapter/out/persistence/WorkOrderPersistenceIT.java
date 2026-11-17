@@ -73,7 +73,7 @@ class WorkOrderPersistenceIT implements TestPropertyProvider {
     void createAndFind() {
         WorkOrder created = workOrders.create(newWorkOrder(UUID.randomUUID(), UUID.randomUUID())).block();
 
-        WorkOrder found = workOrders.findById(created.getId()).block();
+        WorkOrder found = workOrders.findById(created.getId(), created.getOrganisationId()).block();
 
         assertEquals(created.getTitle(), found.getTitle());
         assertEquals(WorkOrderStatus.REQUESTED, found.getStatus());
@@ -119,7 +119,7 @@ class WorkOrderPersistenceIT implements TestPropertyProvider {
         Comment comment = new Comment(UUID.randomUUID(), EXECUTOR, "Confirmed fixed", false, Instant.now());
         workOrders.addComment(id, comment, audit("COMMENT_ADDED", WorkOrderStatus.RESOLVED, WorkOrderStatus.RESOLVED)).block();
 
-        WorkOrder found = workOrders.findById(id).block();
+        WorkOrder found = workOrders.findById(id, created.getOrganisationId()).block();
         assertEquals("New title", found.getTitle());
         assertEquals(Priority.P1, found.getPriority());
         assertEquals(WorkOrderStatus.RESOLVED, found.getStatus());
@@ -154,11 +154,20 @@ class WorkOrderPersistenceIT implements TestPropertyProvider {
     }
 
     @Test
+    @DisplayName("a WorkOrder is found by id for its own organisation only: another tenant's is the same as none")
+    void scopedToItsOrganisation() {
+        WorkOrder created = workOrders.create(newWorkOrder(UUID.randomUUID(), UUID.randomUUID())).block();
+
+        assertEquals(created.getId(), workOrders.findById(created.getId(), created.getOrganisationId()).block().getId());
+        assertNull(workOrders.findById(created.getId(), UUID.randomUUID()).block());
+    }
+
+    @Test
     @DisplayName("an unknown WorkOrder is empty on read and WorkOrderNotFoundException on update")
     void notFound() {
         UUID unknown = UUID.randomUUID();
 
-        assertNull(workOrders.findById(unknown).block());
+        assertNull(workOrders.findById(unknown, UUID.randomUUID()).block());
         assertThrows(WorkOrderNotFoundException.class, () -> workOrders.updateStatus(unknown, WorkOrderStatus.CANCELLED,
                 audit("CANCELLED", WorkOrderStatus.REQUESTED, WorkOrderStatus.CANCELLED)).block());
     }

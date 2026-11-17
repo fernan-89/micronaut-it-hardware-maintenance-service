@@ -36,10 +36,10 @@ public class RetrieveWorkOrderAuditLogUseCase {
         this.workOrderRepository = workOrderRepository;
     }
 
-    public Mono<List<WorkOrderAuditEntryResponse>> execute(UUID id, String executor, String role) {
+    public Mono<List<WorkOrderAuditEntryResponse>> execute(UUID id, UUID organisationId, String executor, String role) {
         log.info("[USE CASE] Retrieving audit ledger for WorkOrder ID: {}", id);
 
-        return workOrderRepository.findById(id)
+        return workOrderRepository.findById(id, organisationId)
                 .switchIfEmpty(Mono.error(new WorkOrderNotFoundException(id)))
                 .flatMap(workOrder -> authorize(workOrder, id, executor, role))
                 .map(workOrder -> workOrder.getAuditTrail().stream().map(WorkOrderMapper::toResponse).collect(Collectors.toList()));
