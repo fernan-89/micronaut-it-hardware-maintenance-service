@@ -6,6 +6,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoCollection;
+import com.thinklab.domain.exception.InvalidWorkOrderStatusException;
 import com.thinklab.domain.exception.WorkOrderNotFoundException;
 import com.thinklab.domain.model.WorkOrder;
 import com.thinklab.domain.model.WorkOrder.Comment;
@@ -112,7 +113,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -122,7 +123,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -147,7 +148,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -159,7 +160,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -170,7 +171,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -180,7 +181,7 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
     @Override
@@ -190,16 +191,25 @@ public class WorkOrderMongoRepositoryAdapter implements WorkOrderRepository {
                 Updates.set(FIELD_UPDATED_AT, Instant.now()),
                 Updates.push(FIELD_AUDIT_TRAIL, AuditEntryDocument.fromDomain(auditEntry))
         );
-        return executeUpdate(id, update);
+        return executeUpdate(id, auditEntry, update);
     }
 
-    private Mono<Void> executeUpdate(UUID id, Bson update) {
-        return Mono.from(getCollection().updateOne(Filters.eq(FIELD_ID, id), update))
+    /**
+     * A guarded write (platform race audit): only if the work order still has the status the caller read, which is the {@code fromStatus} of the audit
+     * entry. No match is a 404 when the work order does not exist and a conflict when it does (someone else changed it since it was read).
+     */
+    private Mono<Void> executeUpdate(UUID id, WorkOrderAuditEntry auditEntry, Bson update) {
+        Bson filter = Filters.and(Filters.eq(FIELD_ID, id), Filters.eq("status", auditEntry.fromStatus().name()));
+        return Mono.from(getCollection().updateOne(filter, update))
                 .flatMap(result -> {
-                    if (result.getMatchedCount() == 0) {
-                        return Mono.error(new WorkOrderNotFoundException(id));
+                    if (result.getMatchedCount() > 0) {
+                        return Mono.<Void>empty();
                     }
-                    return Mono.empty();
+                    return Mono.from(getCollection().countDocuments(Filters.eq(FIELD_ID, id)))
+                            .flatMap(count -> count == 0
+                                    ? Mono.<Void>error(new WorkOrderNotFoundException(id))
+                                    : Mono.<Void>error(new InvalidWorkOrderStatusException(
+                                            "The work order was changed by someone else while this change was being recorded; read it again and retry.")));
                 });
     }
 }
