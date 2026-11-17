@@ -88,7 +88,7 @@ caller's own tickets and hides internal comments (ADR-032). There is no `DELETE`
 | error_code | HTTP | Meaning |
 |---|---|---|
 | `ERR-WO-00404` | 404 | WorkOrder not found (or hidden from a REQUESTER who doesn't own it, ADR-032) |
-| `ERR-WO-00409` | 409 | Illegal or terminal-state lifecycle transition (ADR-019/ADR-030) |
+| `ERR-WO-00409` | 409 | Illegal or terminal-state lifecycle transition (ADR-019/ADR-030), or a change that lost a race with another on the same work order (ADR-035) |
 | `ERR-VALIDATION-00400` | 400 | Payload/header/identifier validation failure |
 | `ERR-INTERNAL-00500` | 500 | Unexpected technical failure |
 

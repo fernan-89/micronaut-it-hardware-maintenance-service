@@ -36,6 +36,11 @@ public interface WorkOrderRepository {
      */
     Flux<WorkOrder> findAllByOrganisationId(UUID organisationId, WorkOrderStatus status, UUID requesterId);
 
+    /**
+     * Every {@code update*} and {@code add*} below is a <b>guarded write</b> (platform race audit): it applies only if the work order still has the status the
+     * caller read, the {@code fromStatus} of the audit entry it carries; a miss is {@link com.thinklab.domain.exception.InvalidWorkOrderStatusException} (409)
+     * when the work order exists and {@link com.thinklab.domain.exception.WorkOrderNotFoundException} when it does not.
+     */
     Mono<Void> updateBasicInfo(UUID id, String title, String symptom, String location, UUID loanerAssetId, WorkOrderAuditEntry auditEntry);
 
     /** Covers every status-only transition: schedule, start, await-parts, resume, fail, close, reopen, cancel. */

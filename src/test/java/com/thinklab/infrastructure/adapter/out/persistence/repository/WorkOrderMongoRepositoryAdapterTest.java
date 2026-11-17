@@ -196,13 +196,34 @@ class WorkOrderMongoRepositoryAdapterTest {
     }
 
     @Test
-    @DisplayName("a zero-matched update translates into WorkOrderNotFoundException")
+    @DisplayName("a guarded write that matches nothing is a 404 when the work order does not exist and a conflict when it does")
     void zeroMatchedUpdate() {
         when(mongoCollection.updateOne(any(Bson.class), any(Bson.class)))
                 .thenReturn(Mono.just(UpdateResult.acknowledged(0, 0L, null)));
 
+        when(mongoCollection.countDocuments(any(Bson.class))).thenReturn(Mono.just(0L));
         StepVerifier.create(adapter.updateStatus(workOrderId, WorkOrderStatus.TRIAGED, entry))
                 .expectError(WorkOrderNotFoundException.class)
                 .verify();
+
+        when(mongoCollection.countDocuments(any(Bson.class))).thenReturn(Mono.just(1L));
+        StepVerifier.create(adapter.updateStatus(workOrderId, WorkOrderStatus.TRIAGED, entry))
+                .expectError(com.thinklab.domain.exception.InvalidWorkOrderStatusException.class)
+                .verify();
+    }
+
+    @Test
+    @DisplayName("every write filters on the id and on the status that was read (the audit entry's fromStatus)")
+    void writesFilterOnTheStatusRead() {
+        when(mongoCollection.updateOne(any(Bson.class), any(Bson.class))).thenReturn(Mono.just(UpdateResult.acknowledged(1, 1L, null)));
+
+        StepVerifier.create(adapter.updateStatus(workOrderId, WorkOrderStatus.TRIAGED, entry)).verifyComplete();
+
+        org.mockito.ArgumentCaptor<Bson> filter = org.mockito.ArgumentCaptor.forClass(Bson.class);
+        org.mockito.Mockito.verify(mongoCollection).updateOne(filter.capture(), any(Bson.class));
+        String json = filter.getValue().toBsonDocument(org.bson.BsonDocument.class, org.bson.codecs.configuration.CodecRegistries.fromRegistries(
+                org.bson.codecs.configuration.CodecRegistries.fromCodecs(new org.bson.codecs.UuidCodec(org.bson.UuidRepresentation.STANDARD)),
+                com.mongodb.MongoClientSettings.getDefaultCodecRegistry())).toJson();
+        org.junit.jupiter.api.Assertions.assertTrue(json.contains("_id") && json.contains("status") && json.contains(entry.fromStatus().name()), json);
     }
 }
